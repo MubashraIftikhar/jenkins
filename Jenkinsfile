@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     stages {
         stage('Checkout') {
             steps {
@@ -9,7 +8,6 @@ pipeline {
                     credentialsId: 'github-creds'
             }
         }
-
         stage('Verify Files') {
             steps {
                 sh 'ls -la'
