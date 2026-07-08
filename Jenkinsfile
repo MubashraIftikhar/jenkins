@@ -4,13 +4,13 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/MubashraIftikhar/jenkins.git',
+                    url: 'https://github.com/<your-username>/<your-repo>.git',
                     credentialsId: 'github-creds'
             }
         }
-        stage('Verify Files') {
+        stage('Build Docker Image') {
             steps {
-                sh 'ls -la'
+                sh 'docker build -t nginx-demo:${BUILD_NUMBER} .'
             }
         }
     }
