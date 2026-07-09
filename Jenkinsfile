@@ -1,15 +1,12 @@
 pipeline {
     agent any
-
     parameters {
         string(name: 'IMAGE_TAG', defaultValue: '', description: 'Docker image tag to pull and run (leave empty to use this build\'s own tag)')
     }
-
     environment {
         IMAGE_NAME = "nginx-demo"
         DOCKERHUB_USERNAME = "mubashraiftikhar10"
     }
-
     stages {
         stage('Checkout') {
             steps {
@@ -18,25 +15,21 @@ pipeline {
                     credentialsId: 'github-creds'
             }
         }
-
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
+                sh 'docker build -t ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER} .'
             }
         }
-
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker tag ${IMAGE_NAME}:${BUILD_NUMBER} $DOCKER_USER/${IMAGE_NAME}:${BUILD_NUMBER}
-                        docker push $DOCKER_USER/${IMAGE_NAME}:${BUILD_NUMBER}
+                        docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}
                     '''
                 }
             }
         }
-
         stage('Determine Tag to Pull') {
             steps {
                 script {
@@ -45,7 +38,6 @@ pipeline {
                 }
             }
         }
-
         stage('Remove Local Image') {
             steps {
                 sh '''
@@ -53,13 +45,11 @@ pipeline {
                 '''
             }
         }
-
         stage('Pull from Docker Hub') {
             steps {
                 sh 'docker pull ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG_TO_USE}'
             }
         }
-
         stage('Run Container') {
             steps {
                 sh '''
