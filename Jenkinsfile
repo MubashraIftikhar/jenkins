@@ -1,7 +1,7 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'IMAGE_TAG', defaultValue: '', description: 'Docker image tag to pull and run (leave empty to use this build\'s own tag)')
+        string(name: 'IMAGE_TAG', defaultValue: '', description: 'Docker image tag to pull and run (leave empty to use this build own tag)')
     }
     environment {
         IMAGE_NAME = "nginx-demo"
@@ -118,6 +118,22 @@ pipeline {
                 def result = currentBuild.currentResult
                 def color = (result == 'SUCCESS') ? 'good' : 'danger'
 
-                def statusEmoji = { s -> s == 'PASSED' ? '✅' : (s == 'FAILED' ? '❌' : '⏭️ SKIPPED') }
+                def statusEmoji = { s -> s == "PASSED" ? "PASSED" : (s == "FAILED" ? "FAILED" : "SKIPPED") }
 
-                def table = """
+                def table = "Checkout: " + statusEmoji(env.STAGE_CHECKOUT) + "\n" +
+                            "Build Docker Image: " + statusEmoji(env.STAGE_BUILD) + "\n" +
+                            "Push to Docker Hub: " + statusEmoji(env.STAGE_PUSH) + "\n" +
+                            "Determine Tag to Pull: " + statusEmoji(env.STAGE_DETERMINE) + "\n" +
+                            "Remove Local Image: " + statusEmoji(env.STAGE_REMOVE) + "\n" +
+                            "Pull from Docker Hub: " + statusEmoji(env.STAGE_PULL) + "\n" +
+                            "Run Container: " + statusEmoji(env.STAGE_RUN)
+
+                slackSend(
+                    channel: '#social',
+                    color: color,
+                    message: "Jenkins Build #${env.BUILD_NUMBER} - ${result}\nJob: nginx-demo-pipeline\nTag running: ${env.TAG_TO_USE ?: 'N/A'}\n\n" + table + "\n\nView Console: ${env.BUILD_URL}console"
+                )
+            }
+        }
+    }
+}
